@@ -1,6 +1,4 @@
 import frappe
-from frappe.custom.doctype.custom_field.custom_field import delete_custom_fields
-
 from erpnext.crm.doctype.crm_settings.crm_settings import CRMSettings
 
 
@@ -24,4 +22,9 @@ def execute():
 
 	custom_fields = CRMSettings.get_frappe_crm_custom_fields()
 
-	delete_custom_fields(custom_fields)
+	# ponytail: frappe v16 dropped delete_custom_fields
+	for doctype, fields in custom_fields.items():
+		frappe.db.delete(
+			"Custom Field", {"dt": doctype, "fieldname": ("in", [f["fieldname"] for f in fields])}
+		)
+		frappe.clear_cache(doctype=doctype)
